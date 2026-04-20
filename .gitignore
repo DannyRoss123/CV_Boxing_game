@@ -43,5 +43,8 @@ godot/
 data/boxing_hub_scores.json
 data/boxing_memory_scores.json
 
+# Web app runtime DB
+data/boxing_web.db
+
 # Claude internal
 CLAUDE.md

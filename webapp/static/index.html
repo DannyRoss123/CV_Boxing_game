@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Boxing Hub — Train with your body</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AUTH SCREEN
+════════════════════════════════════════════════════════════ -->
+<div id="screen-auth" class="screen active">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <h1>BOXING HUB</h1>
+      <p>Your body is the controller</p>
+    </div>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" data-tab="login">Sign In</div>
+      <div class="auth-tab" data-tab="register">Sign Up</div>
+    </div>
+
+    <div id="auth-error" class="auth-error"></div>
+
+    <!-- Login form -->
+    <div id="form-login">
+      <div class="form-group">
+        <label>Username</label>
+        <input id="login-user" type="text" placeholder="your username" autocomplete="username"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input id="login-pass" type="password" placeholder="your password" autocomplete="current-password"/>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" onclick="App.login()">Enter the Ring</button>
+    </div>
+
+    <!-- Register form -->
+    <div id="form-register" class="hidden">
+      <div class="form-group">
+        <label>Choose a Fighter Name</label>
+        <input id="reg-user" type="text" placeholder="e.g. The Hurricane" autocomplete="username"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input id="reg-pass" type="password" placeholder="at least 4 characters" autocomplete="new-password"/>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" onclick="App.register()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HUB SCREEN
+════════════════════════════════════════════════════════════ -->
+<div id="screen-hub" class="screen">
+  <div class="hub-header">
+    <span class="logo">BOXING HUB</span>
+    <div class="hub-user">
+      Welcome back, <span id="hub-username">Fighter</span>
+    </div>
+    <div class="hub-nav">
+      <button class="btn btn-secondary" onclick="App.showTraining()">Training Plans</button>
+      <button class="btn btn-secondary" onclick="App.logout()">Log Out</button>
+    </div>
+  </div>
+
+  <div class="hub-body">
+    <div class="hub-title">Choose Your Game</div>
+    <div class="hub-sub">Stand 2m from your webcam · Good lighting · Upper body visible</div>
+
+    <!-- Game tiles -->
+    <div class="game-tiles">
+      <div class="game-tile" style="--tile-color: var(--jab)" onclick="App.startGame('memory')">
+        <div class="tile-icon">🧠</div>
+        <div class="tile-name">MEMORY</div>
+        <div class="tile-desc">Simon Says with punches — memorise the combo then throw it.</div>
+        <div class="tile-best" id="best-memory">Best: 0</div>
+        <button class="btn btn-primary tile-play">▶ PLAY</button>
+      </div>
+      <div class="game-tile" style="--tile-color: var(--uppercut)" onclick="App.startGame('combo_rush')">
+        <div class="tile-icon">⚡</div>
+        <div class="tile-name">COMBO RUSH</div>
+        <div class="tile-desc">Beat the clock — throw each combo as fast as you can.</div>
+        <div class="tile-best" id="best-combo_rush">Best: 0</div>
+        <button class="btn btn-primary tile-play">▶ PLAY</button>
+      </div>
+      <div class="game-tile" style="--tile-color: var(--hook)" onclick="App.startGame('defense')">
+        <div class="tile-icon">🛡️</div>
+        <div class="tile-name">DEFENSE DRILL</div>
+        <div class="tile-desc">Read the incoming attack and throw the right counter.</div>
+        <div class="tile-best" id="best-defense">Best: 0</div>
+        <button class="btn btn-primary tile-play">▶ PLAY</button>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="leaderboard-section card">
+      <h2>🏆 Leaderboard</h2>
+      <div class="lb-tabs">
+        <div class="lb-tab active" data-game="memory"     onclick="App.loadLeaderboard('memory')">Memory</div>
+        <div class="lb-tab"       data-game="combo_rush" onclick="App.loadLeaderboard('combo_rush')">Combo Rush</div>
+        <div class="lb-tab"       data-game="defense"    onclick="App.loadLeaderboard('defense')">Defense</div>
+      </div>
+      <div id="lb-content">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TRAINING SCREEN
+════════════════════════════════════════════════════════════ -->
+<div id="screen-training" class="screen">
+  <div class="nav-bar">
+    <span class="nav-logo">BOXING HUB</span>
+    <button class="btn btn-secondary" onclick="App.showHub()">← Back to Hub</button>
+  </div>
+  <div class="hub-body">
+    <div class="hub-title">Training Plans</div>
+    <div class="hub-sub">Structured drills for every skill level</div>
+
+    <div class="level-tabs">
+      <div class="level-tab active" data-level="Beginner"     onclick="App.showPlan('Beginner')">Beginner</div>
+      <div class="level-tab"       data-level="Intermediate"  onclick="App.showPlan('Intermediate')">Intermediate</div>
+      <div class="level-tab"       data-level="Advanced"      onclick="App.showPlan('Advanced')">Advanced</div>
+      <div class="level-tab"       data-level="Pro"           onclick="App.showPlan('Pro')">Pro</div>
+    </div>
+
+    <div id="plan-content" class="plan-grid"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GAME SCREEN
+════════════════════════════════════════════════════════════ -->
+<div id="screen-game" class="screen">
+  <div class="game-header">
+    <button class="btn btn-secondary" onclick="App.leaveGame()" style="flex-shrink:0">← Hub</button>
+    <div class="game-title" id="game-title">MEMORY</div>
+    <div class="game-score">Score: <span id="game-score-val">0</span></div>
+  </div>
+
+  <div class="game-layout">
+    <!-- Left: camera -->
+    <div class="cam-panel">
+      <div class="cam-canvas-wrap">
+        <video id="cam-preview" autoplay playsinline muted></video>
+        <canvas id="cam-canvas"></canvas>
+      </div>
+      <div class="cv-status">
+        <span class="motion-badge motion-IDLE" id="motion-badge">IDLE</span>
+        <div class="vel-bar-wrap">
+          <div class="vel-bar-bg"><div class="vel-bar-fill" id="vel-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div id="mp-status" style="color:var(--muted);font-size:.8rem;margin-top:.4rem">
+        Loading MediaPipe...
+      </div>
+    </div>
+
+    <!-- Right: game panel -->
+    <div class="game-panel">
+      <!-- Last classified action -->
+      <div class="action-flash">
+        <div class="action-name" id="action-name" style="color:var(--muted)">—</div>
+        <div class="conf-bar-bg"><div class="conf-bar-fill" id="conf-bar" style="width:0%"></div></div>
+        <div class="conf-text"  id="conf-text">waiting...</div>
+      </div>
+
+      <!-- Game state area -->
+      <div class="game-state-area" id="game-state-area">
+        <div style="color:var(--muted);text-align:center;padding:2rem">Starting game...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game over overlay (hidden until game ends) -->
+  <div class="game-over-overlay hidden" id="game-over-overlay">
+    <div class="go-title" id="go-title">GAME OVER</div>
+    <div class="go-score" id="go-score">0</div>
+    <div class="go-label">points</div>
+    <div id="go-extra" style="color:var(--muted);font-size:.9rem"></div>
+    <div class="go-actions">
+      <button class="btn btn-primary btn-lg" onclick="App.playAgain()">Play Again</button>
+      <button class="btn btn-secondary btn-lg" onclick="App.showHub()">Back to Hub</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
