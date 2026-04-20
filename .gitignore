@@ -38,3 +38,10 @@ godot/
 
 # Logs
 *.log
+
+# Runtime score files
+data/boxing_hub_scores.json
+data/boxing_memory_scores.json
+
+# Claude internal
+CLAUDE.md
