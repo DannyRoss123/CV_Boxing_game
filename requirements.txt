@@ -1,0 +1,9 @@
+opencv-python
+mediapipe
+numpy
+scikit-learn
+joblib
+torch
+websockets
+pygame
+gradio
