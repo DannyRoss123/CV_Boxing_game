@@ -1,4 +1,15 @@
-# PunchCV — Real-Time Boxing Action Recognition
+---
+title: Boxing Hub
+emoji: 🥊
+colorFrom: red
+colorTo: yellow
+sdk: docker
+pinned: false
+license: mit
+app_port: 7860
+---
+
+# Boxing Hub — Real-Time Boxing Training Games
 
 Your body is the controller. PunchCV uses a standard webcam + MediaPipe pose estimation to classify six boxing actions in real time, driving an interactive boxing game.
 
