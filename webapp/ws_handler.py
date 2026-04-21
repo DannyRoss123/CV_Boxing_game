@@ -119,10 +119,14 @@ async def handle(ws: WebSocket, user: dict, save_score_fn):
                         "type": "game_state", "game": game_name, "state": game.get_state()
                     }))
                     if game.is_done:
-                        score = game.get_state()["score"]
+                        final = game.get_state()
+                        score = final["score"]
                         await save_score_fn(game_name, score)
                         await ws.send_text(json.dumps({
-                            "type": "game_over", "game": game_name, "score": score
+                            "type":       "game_over",
+                            "game":       game_name,
+                            "score":      score,
+                            "last_state": final,
                         }))
                         game = None; game_name = None
 
