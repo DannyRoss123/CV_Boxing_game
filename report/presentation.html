@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PunchCV — AIPI 540 Final Project</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Inter:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#08080f; --bg2:#0f0f1a; --bg3:#161625; --border:#1e1e35;
+    --text:#e8e8f0; --muted:#6b6b8a;
+    --red:#e63946; --gold:#f4a261; --blue:#4cc9f0; --green:#57cc99; --purple:#a78bfa;
+  }
+  html,body { width:100%; height:100%; background:var(--bg); color:var(--text);
+    font-family:'Inter',sans-serif; overflow:hidden; }
+
+  #deck { width:100vw; height:100vh; position:relative; }
+  .slide {
+    position:absolute; inset:0; display:none; flex-direction:column;
+    justify-content:center; align-items:center; padding:4vw 6vw;
+    opacity:0; transition:opacity .3s ease;
+  }
+  .slide.active { display:flex; }
+  .slide.visible { opacity:1; }
+
+  /* nav */
+  #nav { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%);
+    display:flex; align-items:center; gap:1rem; z-index:100; }
+  .nav-btn { background:var(--bg3); border:1px solid var(--border); color:var(--text);
+    font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:600;
+    letter-spacing:.05em; padding:.45rem 1.25rem; cursor:pointer; border-radius:3px;
+    transition:border-color .2s; }
+  .nav-btn:hover { border-color:var(--red); }
+  #slide-counter { font-family:'Barlow Condensed',sans-serif; font-size:.85rem;
+    color:var(--muted); letter-spacing:.1em; min-width:5ch; text-align:center; }
+  #dots { position:fixed; top:1.25rem; left:50%; transform:translateX(-50%);
+    display:flex; gap:.5rem; z-index:100; }
+  .dot { width:6px; height:6px; border-radius:50%; background:var(--border);
+    cursor:pointer; transition:background .2s; }
+  .dot.active { background:var(--red); }
+  .slide-badge { position:absolute; top:1.75rem; right:2.5rem;
+    font-family:'Barlow Condensed',sans-serif; font-size:.75rem;
+    letter-spacing:.15em; color:var(--muted); }
+
+  /* type */
+  .eyebrow { font-family:'Barlow Condensed',sans-serif; font-size:.8rem;
+    letter-spacing:.2em; text-transform:uppercase; color:var(--red); margin-bottom:.6rem; }
+  h1 { font-family:'Barlow Condensed',sans-serif;
+    font-size:clamp(3rem,8vw,5.5rem); font-weight:900;
+    letter-spacing:-.01em; line-height:.95; text-transform:uppercase; }
+  h2 { font-family:'Barlow Condensed',sans-serif;
+    font-size:clamp(1.75rem,4vw,3rem); font-weight:700;
+    text-transform:uppercase; letter-spacing:.02em; margin-bottom:1.25rem; line-height:1; }
+  h3 { font-size:.95rem; font-weight:600; margin-bottom:.35rem; }
+  p  { font-size:clamp(.82rem,1.3vw,.95rem); line-height:1.55; color:#c0c0d8; }
+
+  .accent{color:var(--red)} .gold{color:var(--gold)} .blue{color:var(--blue)}
+  .green{color:var(--green)} .purple{color:var(--purple)}
+
+  /* layouts */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:3vw; align-items:start; width:100%; }
+  .three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5vw; width:100%; }
+  .four-col { display:grid; grid-template-columns:repeat(4,1fr); gap:1.25vw; width:100%; }
+  .content { width:100%; max-width:1100px; }
+
+  /* card */
+  .card { background:var(--bg2); border:1px solid var(--border); padding:1.25rem; border-radius:4px; }
+  .card.rt { border-top:3px solid var(--red); }
+  .card.gt { border-top:3px solid var(--gold); }
+  .card.bt { border-top:3px solid var(--blue); }
+  .card.gnt { border-top:3px solid var(--green); }
+  .card.pt { border-top:3px solid var(--purple); }
+  .card.rl { border-left:3px solid var(--red); border-top:none; }
+  .card.gl { border-left:3px solid var(--gold); border-top:none; }
+  .card.bl { border-left:3px solid var(--blue); border-top:none; }
+  .card.gnl { border-left:3px solid var(--green); border-top:none; }
+
+  /* pipeline */
+  .pipeline { display:flex; align-items:stretch; width:100%; margin-bottom:1.5rem; }
+  .pipe-step { background:var(--bg3); border:1px solid var(--border);
+    padding:.55rem .75rem; font-family:'Barlow Condensed',sans-serif;
+    font-size:clamp(.7rem,1.1vw,.85rem); font-weight:600; letter-spacing:.04em;
+    text-align:center; flex:1; display:flex; align-items:center; justify-content:center; }
+  .pipe-arrow { color:var(--red); font-size:1rem; padding:0 .2rem; display:flex; align-items:center; flex-shrink:0; }
+
+  /* table */
+  table { width:100%; border-collapse:collapse; font-size:clamp(.78rem,1.2vw,.9rem); }
+  th { font-family:'Barlow Condensed',sans-serif; font-size:.75rem; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--border);
+    padding:.5rem .65rem; text-align:left; }
+  td { padding:.55rem .65rem; border-bottom:1px solid var(--border); color:#c0c0d8; }
+  tr.hl td { color:var(--text); font-weight:600; }
+  tr.hl td:nth-child(2) { color:var(--green); }
+
+  /* stat */
+  .stat-row { display:flex; gap:1rem; width:100%; margin-bottom:1.25rem; }
+  .stat-box { flex:1; background:var(--bg2); border:1px solid var(--border);
+    padding:1rem; text-align:center; border-radius:4px; }
+  .stat-val { font-family:'Barlow Condensed',sans-serif;
+    font-size:clamp(1.75rem,3.5vw,2.5rem); font-weight:900; line-height:1; margin-bottom:.2rem; }
+  .stat-lbl { font-size:.7rem; letter-spacing:.12em; color:var(--muted); text-transform:uppercase; }
+
+  /* bullets */
+  .bullets { list-style:none; display:flex; flex-direction:column; gap:.6rem; }
+  .bullets li { display:flex; gap:.65rem; align-items:flex-start;
+    font-size:clamp(.82rem,1.3vw,.93rem); color:#c0c0d8; }
+  .bullets li::before { content:''; width:5px; height:5px; border-radius:50%;
+    background:var(--red); margin-top:.45rem; flex-shrink:0; }
+
+  .divider { width:2.5rem; height:3px; background:var(--red); margin:.75rem 0; }
+  .code-block { background:#0a0a14; border:1px solid var(--border); border-left:3px solid var(--blue);
+    font-family:'Courier New',monospace; font-size:clamp(.68rem,1vw,.82rem);
+    color:#a0a0c8; padding:.75rem 1rem; border-radius:4px; line-height:1.65; }
+  .code-block .hl{color:var(--gold)} .code-block .hl2{color:var(--green)}
+
+  /* state machine */
+  .sm-row { display:flex; align-items:center; gap:.35rem; margin-top:.75rem; flex-wrap:wrap; }
+  .sm-state { background:var(--bg3); border:1px solid var(--border);
+    font-family:'Barlow Condensed',sans-serif; font-weight:700;
+    font-size:.9rem; letter-spacing:.06em; padding:.4rem .85rem; border-radius:3px; }
+  .sm-edge { color:var(--muted); font-size:.7rem; padding:0 .15rem; text-align:center; line-height:1.3; }
+
+  /* title slide */
+  .slide-title { text-align:center; }
+  .slide-title h1 { margin-bottom:.65rem; }
+  .slide-title .sub { font-size:clamp(.95rem,1.8vw,1.15rem); color:var(--muted); max-width:580px; margin:0 auto; }
+  .title-bar { width:100%; max-width:460px; height:3px;
+    background:linear-gradient(90deg,var(--red),transparent); margin:1.25rem auto 0; }
+  .title-meta { display:flex; gap:2rem; margin-top:1.5rem; justify-content:center; flex-wrap:wrap; }
+  .title-meta-item { font-size:.82rem; color:var(--muted); letter-spacing:.06em; }
+  .title-meta-item strong { color:var(--text); }
+
+  /* slide 1 glow */
+  #s1::before { content:''; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at 30% 50%,rgba(230,57,70,.07) 0%,transparent 55%),
+               radial-gradient(ellipse at 70% 50%,rgba(76,201,240,.04) 0%,transparent 55%); }
+
+  /* demo slide */
+  .demo-link { font-family:'Barlow Condensed',sans-serif; font-size:clamp(1.2rem,2.5vw,1.75rem);
+    font-weight:700; color:var(--blue); text-decoration:none; letter-spacing:.04em;
+    border-bottom:2px solid var(--blue); padding-bottom:.15rem;
+    transition:color .2s, border-color .2s; }
+  .demo-link:hover { color:var(--text); border-color:var(--text); }
+</style>
+</head>
+<body>
+<div id="deck">
+
+<!-- ── SLIDE 1: TITLE ── -->
+<div class="slide slide-title" id="s1">
+  <div class="eyebrow">AIPI 540 — Deep Learning Applications &nbsp;·&nbsp; Final Project</div>
+  <h1>PUNCH<span class="accent">CV</span></h1>
+  <p class="sub">Real-time boxing action recognition via pose estimation — your body is the controller.</p>
+  <div class="title-bar"></div>
+  <div class="title-meta">
+    <div class="title-meta-item"><strong>Danny Ross</strong></div>
+    <div class="title-meta-item">April 2026</div>
+  </div>
+</div>
+
+<!-- ── SLIDE 2: PROBLEM + DATA ── -->
+<div class="slide" id="s2">
+  <div class="slide-badge">01 / PROBLEM</div>
+  <div class="content">
+    <div class="eyebrow">The Challenge</div>
+    <h2>Problem &amp; Dataset</h2>
+    <div class="two-col">
+      <div>
+        <p style="margin-bottom:1rem">Motion-controlled gaming requires specialized hardware. Can a <strong style="color:var(--text)">standard webcam</strong> replace all of that?</p>
+        <ul class="bullets">
+          <li><strong>6-class temporal classification</strong> — idle, jab, cross, hook, uppercut, block_high</li>
+          <li><strong>2-second sliding window</strong> — classify from 60 frames of body landmarks</li>
+          <li><strong>Hard latency constraint</strong> — &lt;33 ms to keep pace with 30 fps webcam</li>
+          <li><strong>No specialized hardware</strong> — standard 720p laptop webcam only</li>
+        </ul>
+      </div>
+      <div>
+        <table style="margin-bottom:.75rem">
+          <thead><tr><th>Class</th><th>Samples</th></tr></thead>
+          <tbody>
+            <tr><td>idle</td><td>149</td></tr>
+            <tr><td>jab</td><td>150</td></tr>
+            <tr><td>cross / hook</td><td>100 each</td></tr>
+            <tr><td>uppercut</td><td>150</td></tr>
+            <tr><td>block_high</td><td>100</td></tr>
+            <tr class="hl"><td><strong>Total</strong></td><td><strong>749</strong></td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:.8rem;color:var(--muted)">Each sample: (60, 132) array — 60 frames × 33 landmarks × 4 values. Hip-centered, torso-scaled normalization. Stratified 60/20/20 split.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 3: PIPELINE ── -->
+<div class="slide" id="s3">
+  <div class="slide-badge">02 / PIPELINE</div>
+  <div class="content">
+    <div class="eyebrow">Feature Engineering</div>
+    <h2>Pose → Features → Class</h2>
+    <div class="pipeline">
+      <div class="pipe-step">Webcam frame</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">MediaPipe<br>PoseLandmarker</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">33 landmarks<br>132 floats</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">Hip-center<br>torso-scale</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">60-frame<br>window</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step" style="border-color:var(--gold);color:var(--gold)">std + range<br>+ delta</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step" style="border-color:var(--red);color:var(--red)">RF predict<br>396 features</div>
+    </div>
+    <div class="three-col">
+      <div class="card bt">
+        <h3 class="blue">std</h3>
+        <p>Overall movement magnitude — how much each landmark moved over the window.</p>
+      </div>
+      <div class="card gt">
+        <h3 class="gold">range</h3>
+        <p>Full excursion — max minus min position across 60 frames per landmark axis.</p>
+      </div>
+      <div class="card gnt">
+        <h3 class="green">delta</h3>
+        <p>Directional displacement — net movement first→last frame. Captures punch direction.</p>
+      </div>
+    </div>
+    <p style="margin-top:.9rem;font-size:.8rem;color:var(--muted);text-align:center">132 landmarks × 3 stats = <strong style="color:var(--text)">396 features</strong> per sample</p>
+  </div>
+</div>
+
+<!-- ── SLIDE 4: MODELS ── -->
+<div class="slide" id="s4">
+  <div class="slide-badge">03 / MODELS</div>
+  <div class="content">
+    <div class="eyebrow">Three Models Evaluated</div>
+    <h2>Naive Baseline · Classical ML · Deep Learning</h2>
+    <div class="three-col" style="margin-bottom:1.25rem">
+      <div class="card rt">
+        <h3 class="accent">Nearest Centroid</h3>
+        <p style="font-size:.82rem;margin-bottom:.65rem">Per-class mean vector (7920-dim). Predict closest centroid. No feature engineering.</p>
+        <p style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:900;color:var(--text)">50.0%</p>
+        <p style="font-size:.73rem;color:var(--muted)">&lt;1 ms &nbsp;·&nbsp; 3× above chance</p>
+      </div>
+      <div class="card gt">
+        <h3 class="gold">Random Forest</h3>
+        <p style="font-size:.82rem;margin-bottom:.65rem">200 trees, max_depth=20. Trained on 396 temporal stats. StandardScaler preprocessing.</p>
+        <p style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:900;color:var(--green)">97.1%</p>
+        <p style="font-size:.73rem;color:var(--muted)">~3 ms &nbsp;·&nbsp; <strong style="color:var(--gold)">Deployed</strong></p>
+      </div>
+      <div class="card bt">
+        <h3 class="blue">2-Layer LSTM</h3>
+        <p style="font-size:.82rem;margin-bottom:.65rem">hidden=64, dropout=0.3. Raw (60×132) input. Early stopping patience=50. PyTorch.</p>
+        <p style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:900;color:var(--text)">92.9%</p>
+        <p style="font-size:.73rem;color:var(--muted)">~15 ms &nbsp;·&nbsp; ~8 min train</p>
+      </div>
+    </div>
+    <div class="card" style="padding:1rem 1.25rem">
+      <p style="font-size:.88rem"><strong style="color:var(--gold)">Why RF beats LSTM:</strong> With ~600 samples, hand-crafted temporal statistics provide stronger inductive bias than end-to-end sequence learning. The LSTM must learn from scratch what std/range/delta encode explicitly — more data would close the gap.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 5: EVAL + EXPERIMENT ── -->
+<div class="slide" id="s5">
+  <div class="slide-badge">04 / EVALUATION</div>
+  <div class="content">
+    <div class="eyebrow">Results &amp; Sensitivity Analysis</div>
+    <h2>Evaluation</h2>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-val green">97.1%</div><div class="stat-lbl">RF Test Accuracy</div></div>
+      <div class="stat-box"><div class="stat-val blue">92.9%</div><div class="stat-lbl">LSTM Test Accuracy</div></div>
+      <div class="stat-box"><div class="stat-val gold">0.97</div><div class="stat-lbl">RF Macro F1</div></div>
+      <div class="stat-box"><div class="stat-val">~3 ms</div><div class="stat-lbl">RF Inference CPU</div></div>
+    </div>
+    <div class="two-col">
+      <table>
+        <thead><tr><th>Class</th><th>RF F1</th><th>LSTM F1</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>idle</td><td>0.98</td><td>0.97</td></tr>
+          <tr class="hl"><td>jab</td><td>0.98</td><td>0.97</td></tr>
+          <tr><td>cross</td><td>0.93</td><td>0.84</td></tr>
+          <tr><td>hook</td><td>0.92</td><td>0.85</td></tr>
+          <tr class="hl"><td>uppercut</td><td>1.00</td><td>0.98</td></tr>
+          <tr><td>block_high</td><td>0.97</td><td>0.95</td></tr>
+        </tbody>
+      </table>
+      <div>
+        <p style="font-size:.85rem;font-weight:600;margin-bottom:.6rem">Training Set Size Sensitivity</p>
+        <table>
+          <thead><tr><th>Train N</th><th>RF Acc</th><th>±</th></tr></thead>
+          <tbody>
+            <tr><td>60 (10%)</td><td>81.7%</td><td>±5.2%</td></tr>
+            <tr style="color:var(--gold)"><td>360 (60%)</td><td>95.5%</td><td>±0.8%</td></tr>
+            <tr class="hl"><td>599 (100%)</td><td>97.1%</td><td>±0.7%</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:.6rem;font-size:.78rem;color:var(--muted)">+13.8pp gain from 10%→60%, then only +1.6pp to 100% — near saturation on single-user data.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 6: ARCHITECTURE ── -->
+<div class="slide" id="s6">
+  <div class="slide-badge">05 / ARCHITECTURE</div>
+  <div class="content">
+    <div class="eyebrow">Cool Stuff</div>
+    <h2>System Architecture</h2>
+    <div class="two-col" style="gap:1.25rem">
+      <div class="card rl">
+        <h3>Motion Detection State Machine</h3>
+        <p style="font-size:.82rem;margin-bottom:.6rem">Triggers RF inference only on real movement — no per-frame classification. Reduces false positives.</p>
+        <div class="sm-row">
+          <div class="sm-state">IDLE</div>
+          <div class="sm-edge">velocity ↑<br>3 frames</div>
+          <div class="sm-state accent">MOTION</div>
+          <div class="sm-edge">velocity ↓<br>8 frames</div>
+          <div class="sm-state" style="color:var(--gold)">COOLDOWN</div>
+          <div class="sm-edge">0.6 s</div>
+          <div class="sm-state">IDLE</div>
+        </div>
+      </div>
+      <div class="card bl">
+        <h3>MediaPipe WASM in Browser</h3>
+        <p style="font-size:.82rem">Pose detection runs <strong>client-side</strong>. Only 132 floats/frame sent to server — not video. Eliminates webcam lag entirely.</p>
+        <div class="code-block" style="margin-top:.65rem">
+          Browser → <span class="hl2">132 floats/frame</span> → Server<br>
+          <span style="color:var(--muted)">vs. old: JPEG/frame → server (laggy)</span>
+        </div>
+      </div>
+      <div class="card gl">
+        <h3>FastAPI + WebSocket Game Server</h3>
+        <p style="font-size:.82rem">3 game state machines run server-side. Client renders JSON diffs. Score integrity guaranteed server-side.</p>
+        <div class="code-block" style="margin-top:.65rem">
+          <span class="hl">on_punch</span>(action, conf) → tick<br>
+          <span class="hl2">get_state</span>() → JSON → browser
+        </div>
+      </div>
+      <div class="card gnl">
+        <h3>BoxingHub — Full Web App</h3>
+        <p style="font-size:.82rem">JWT auth, bcrypt passwords, global leaderboard (SQLite), personal score history, 3 playable games, training plans. All deployed on HuggingFace.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 7: NEXT STEPS + DEMO ── -->
+<div class="slide slide-title" id="s7">
+  <div class="slide-badge">06 / NEXT STEPS</div>
+  <div class="content" style="text-align:left">
+    <div class="eyebrow">What's Next</div>
+    <h2>Next Steps</h2>
+    <div class="three-col" style="margin-bottom:2.5rem">
+      <div class="card rt">
+        <h3 class="accent">Multi-User Data</h3>
+        <p style="font-size:.82rem">Collect from 3–5 users. Cross-person generalization is the biggest gap between prototype and consumer product.</p>
+      </div>
+      <div class="card gt">
+        <h3 class="gold">Few-Shot Calibration</h3>
+        <p style="font-size:.82rem">5 punches per class on first launch → model adapts. Enables consumer deployment without full retraining.</p>
+      </div>
+      <div class="card bt">
+        <h3 class="blue">Combo Detection</h3>
+        <p style="font-size:.82rem">Recognize jab-cross as a compound event, not two separate classifications. Richer game mechanics.</p>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <div class="eyebrow" style="margin-bottom:.5rem">Live Demo</div>
+      <a class="demo-link" href="https://huggingface.co/spaces/DanielRoss12345/boxinghub"
+        target="_blank">huggingface.co/spaces/DanielRoss12345/boxinghub</a>
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<div id="nav">
+  <button class="nav-btn" id="prev-btn">← Prev</button>
+  <span id="slide-counter">1 / 7</span>
+  <button class="nav-btn" id="next-btn">Next →</button>
+</div>
+<div id="dots"></div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('slide-counter');
+  const dotsEl  = document.getElementById('dots');
+  let current = 0;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => go(i);
+    dotsEl.appendChild(d);
+  });
+
+  function go(n) {
+    slides[current].classList.remove('visible');
+    setTimeout(() => {
+      slides[current].style.display = 'none';
+      current = (n + slides.length) % slides.length;
+      slides[current].style.display = 'flex';
+      requestAnimationFrame(() => requestAnimationFrame(() => slides[current].classList.add('visible')));
+      counter.textContent = (current + 1) + ' / ' + slides.length;
+      dotsEl.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+    }, 200);
+  }
+
+  slides.forEach((s, i) => { if (i !== 0) s.style.display = 'none'; });
+  slides[0].classList.add('visible');
+
+  document.getElementById('next-btn').onclick = () => go(current + 1);
+  document.getElementById('prev-btn').onclick = () => go(current - 1);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') go(current + 1);
+    if (e.key === 'ArrowLeft') go(current - 1);
+  });
+</script>
+</body>
+</html>

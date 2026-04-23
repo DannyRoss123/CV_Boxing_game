@@ -13,7 +13,7 @@ app_port: 7860
 
 Your body is the controller. PunchCV uses a standard webcam + MediaPipe pose estimation to classify six boxing actions in real time, driving an interactive boxing game.
 
-**Live demo:** [https://huggingface.co/spaces/YOUR_USERNAME/punchcv](https://huggingface.co/spaces/YOUR_USERNAME/punchcv) *(replace with your URL after deployment)*
+**Live demo:** [https://huggingface.co/spaces/DanielRoss12345/boxinghub](https://huggingface.co/spaces/DanielRoss12345/boxinghub)
 
 ---
 
